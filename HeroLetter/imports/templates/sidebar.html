@@ -1,0 +1,48 @@
+<template name = "sidebar">
+
+
+    <div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar">
+        <!-- Link with dropdown items -->
+        <li>
+            <a href="#worldsubmenu" data-toggle="collapse" aria-expanded="false">World Building <span class ="glyphicon glyphicon-triangle-bottom"></span></a>
+            <ul class="collapse nav nav-sidebar" id="worldsubmenu">
+                <li><a href="#" id = "locations">Locations</a></li>
+                <li><a href="#" id = "factions">Factions</a></li>
+                <li><a href="#" id = "items">Items</a></li>
+            </ul>
+        </li>
+        </ul>
+
+        <ul class="nav nav-sidebar">
+            <li>
+                <a href="#charsubmenu" data-toggle="collapse" aria-expanded="false">Characters <span class ="glyphicon glyphicon-triangle-bottom"></span></a>
+                <ul class="collapse nav nav-sidebar" id="charsubmenu">
+                    <li><a href="#" id = "heroes">Heroes</a></li>
+                    <li><a href="#" id = "villains">Villains</a></li>
+                    <li><a href="#" id = "npc">NPCs</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <ul class="nav nav-sidebar">
+            <li>
+                <a href="#plotsubmenu" data-toggle="collapse" aria-expanded="false">Plot <span class ="glyphicon glyphicon-triangle-bottom"></span></a>
+                <ul class="collapse nav nav-sidebar" id="plotsubmenu">
+                    <li><a href="#">Beginning</a></li>
+                    <li><a href="#">Rising Action</a></li>
+                    <li><a href="#">Middle</a></li>
+                    <li><a href="#">Falling Action</a></li>
+                    <li><a href="#">End</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <ul class = "nav nav-sidebar">
+            <li>
+                <a href = "#">The Story So Far...</a>
+            </li>
+        </ul>
+
+    </div>
+</template>

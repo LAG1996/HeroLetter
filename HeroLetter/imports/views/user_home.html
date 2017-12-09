@@ -1,0 +1,51 @@
+<template name = "user_dashboard">
+	<div class = "container">
+		<h1 class="page-header user-greeting">Hello, {{>username}}!</h1>
+
+		<h3>Which story would you like to edit?</h3>
+
+		{{#each story_triples}}
+
+			<div class ="row">
+				{{> story_prev}}
+			</div>
+
+		{{/each}}
+	</div>
+
+</template>
+
+<template name = "username">
+
+	<span>{{user_name}}</span>
+
+</template>
+
+
+<template name = "story_prev">
+
+	<div class = "col-sm-4">
+		<div class = "panel panel-default story">
+			<div class = "panel-heading">{{title_1}}</div>
+			<div class = "panel-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sit amet pellentesque felis, in placerat lacus. Cras lobortis aliquet turpis, imperdiet ornare tortor consectetur id. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus at tristique lectus, a tristique magna. Nunc aliquet sapien nec dui lobortis hendrerit. Aliquam maximus orci lobortis maximus efficitur. Maecenas eu neque non turpis varius luctus. Praesent interdum lectus efficitur volutpat interdum. Ut ultricies hendrerit diam sit amet vehicula. Nam eu lectus eget urna finibus rutrum nec sed tortor. Cras auctor sit amet velit quis eleifend. Pellentesque eget sollicitudin velit. Praesent commodo, arcu ac congue molestie, purus nisi semper elit, id ullamcorper ante nisi at arcu. Aenean rutrum auctor placerat. Nulla ullamcorper aliquam posuere. Aliquam erat volutpat.</div>
+			<div class = "panel-footer">Completion: 0%</div>
+		</div>
+	</div>
+		<div class = "col-sm-4">
+		<div class = "panel panel-default story">
+			<div class = "panel-heading">{{title_2}}</div>
+			<div class = "panel-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sit amet pellentesque felis, in placerat lacus. Cras lobortis aliquet turpis, imperdiet ornare tortor consectetur id. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus at tristique lectus, a tristique magna. Nunc aliquet sapien nec dui lobortis hendrerit. Aliquam maximus orci lobortis maximus efficitur. Maecenas eu neque non turpis varius luctus. Praesent interdum lectus efficitur volutpat interdum. Ut ultricies hendrerit diam sit amet vehicula. Nam eu lectus eget urna finibus rutrum nec sed tortor. Cras auctor sit amet velit quis eleifend. Pellentesque eget sollicitudin velit. Praesent commodo, arcu ac congue molestie, purus nisi semper elit, id ullamcorper ante nisi at arcu. Aenean rutrum auctor placerat. Nulla ullamcorper aliquam posuere. Aliquam erat volutpat.</div>
+			<div class = "panel-footer">Completion: 0%</div>
+		</div>
+	</div>
+		<div class = "col-sm-4">
+		<div class = "panel panel-default story">
+			<div class = "panel-heading">{{title_3}}</div>
+			<div class = "panel-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sit amet pellentesque felis, in placerat lacus. Cras lobortis aliquet turpis, imperdiet ornare tortor consectetur id. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus at tristique lectus, a tristique magna. Nunc aliquet sapien nec dui lobortis hendrerit. Aliquam maximus orci lobortis maximus efficitur. Maecenas eu neque non turpis varius luctus. Praesent interdum lectus efficitur volutpat interdum. Ut ultricies hendrerit diam sit amet vehicula. Nam eu lectus eget urna finibus rutrum nec sed tortor. Cras auctor sit amet velit quis eleifend. Pellentesque eget sollicitudin velit. Praesent commodo, arcu ac congue molestie, purus nisi semper elit, id ullamcorper ante nisi at arcu. Aenean rutrum auctor placerat. Nulla ullamcorper aliquam posuere. Aliquam erat volutpat.</div>
+			<div class = "panel-footer">Completion: 0%</div>
+		</div>
+	</div>
+
+
+
+</template>

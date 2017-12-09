@@ -1,5 +1,9 @@
 import { Accounts } from 'meteor/accounts-base'
 
-Accounts.ui.config({
-	passwordSignupFields: 'USERNAME_ONLY'
+AccountsTemplates.configure({
+	texts: {
+		title: {
+			signIn: "Sign In"
+		}
+	}
 })
