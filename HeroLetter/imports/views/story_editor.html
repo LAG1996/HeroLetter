@@ -6,18 +6,64 @@
 
 
 	        <div class = "col-sm-8 col-sm-offset-3 col-md-9 col-md-offset-2">
-		        <h2 id = "editor_header">The Story so Far...</h2>
-		        <h4 id = "editor_subtitle">Where are we going with this?</h4>
-	        	<div class = "playground">
-	        		<div class="panel panel-warning" id = "empty_panel">
-	        			<div class = "panel-heading">
-		        			<h1 class = "panel-title" id = "empty_warning">No locations, no characters, no story. Check out the World, Location, and Plot panels to Get Started!</h1>
-		        		</div>
-	        		</div>
-	        	</div>
+	        	<div class = "page-header">
+			        <h2 id = "editor_header">The Story So Far</h2>
+			        <div class = "row">
+			        	<div class = "col-sm-6 col-md-10"><h4 id = "editor_subtitle">Where are we going with this?</h4></div>
+			    	</div>
+		    	</div>
 
+		    	{{#if not_the_story_so_far}}
+		    		{{> playground}}
+		    	{{else}}
+		    		<p>Under construction...</p>
+		    	{{/if}}
 	        </div>
     	</div>
     </div>
+
+</template>
+
+<template name = "playground">
+
+	<div class = "row playground">
+		<div class = "col-sm-3 col-md-5" id = "entity_prev_list">
+
+	     		<div class="panel panel-warning" id = "empty_panel">
+	     			<div class = "panel-heading">
+	        			<h1 class = "panel-title" id = "empty_warning">No locations, no characters, no story. Check out the World, Location, and Plot panels to Get Started!</h1>
+	        		</div>
+	     		</div>
+
+			    <div id = "create_btn"><button class = "btn btn-default right" data-toggle="modal" data-target="#edit_modal">Add</button></div>
+
+	     	<div class = "list-group" id = "entity_list">
+
+	     		<a href = "#" class = "list-group-item playground_entity_prev">Entity Name</a>		        					        		
+	     	</div>
+	     </div>
+
+	     <div class = "col-sm-9 col-md-7" id = "generic_card">
+	     	{{> card}}
+	     </div>
+
+	</div>
+
+	{{> edit_entity_modal}}
+
+</template>
+
+<template name = "card">
+
+
+	<h1 class = "text-center">Name of Entity</h1>
+	<button class = "btn btn-default" data-toggle="modal" data-target="#edit_modal">Edit</button>
+
+	{{> location_card}}
+	{{> character_card}}
+	{{> item_card}}
+	{{> faction_card}}
+	{{> rule_card}}
+	{{> event_card}}
 
 </template>

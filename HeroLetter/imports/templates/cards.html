@@ -1,9 +1,102 @@
-<template name = "character_prev_card">
+<template name = "location_card">
+<div id = "location_card" class = "card">
+	<h3 class = "aspect_header">Places inside of me:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Places I am a part of:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Characters that came from me:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Events that involved me:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	</div>
+
 </template>
 
-<template name = "location_prev_card">
+
+<template name = "character_card">
+<div id = "character_card" class = "card">
+	<h3 class = "aspect_header">The place I came from:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">My race:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">The factions I was/am a part of:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Events that I was involved with:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+</div>
 </template>
 
-<template name = "item_prev_card">
+<template name = "item_card">
+<div id = "item_card" class = "card">
+	<h3 class = "aspect_header">My place of origin:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Who wants me?</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Events I was used or involved in:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+</div>
 </template>
 
+<template name = "faction_card">
+<div id = "faction_card" class = "card">
+	<h3 class = "aspect_header">Places I can be found:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Values and beliefs I uphold:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3 class = "aspect_header">Characters who were/are a part of me:</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+</div>
+
+
+</template>
+
+<template name = "rule_card">
+<div id = "rule_card" class = "card">
+	<h3>A description of me:</h3>
+	<textarea class = "form-control" rows = 20></textarea> 
+</div>
+</template>
+
+<template name = "event_card">
+<div id = "event_card" class = "card">
+	<h3>A description of me:</h3>
+	<textarea class = "form-control" rows = 5></textarea>
+
+	<h3>Where did I happen?</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3>Who was involved in me?</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3>What was involved in me?</h3>
+	<div class = "list-group">{{> entity_membership_list}}</div>
+
+	<h3>A description of what happened because of me:</h3>
+	<textarea class = "form-control" rows = 5></textarea>
+
+</div>
+</template>
+
+<template name = "entity_membership_list">
+<div class = "entity_membership_list">
+
+	<a href = "#" class = "list-group-item">Some character</a>
+
+</div>
+</template>
+
+<template name = "entity_add_btn">
+	<button class = "glyphicon glyphicon-plus btn btn-default" id = "entity_add_btn"></button>
+</template>

@@ -1,9 +1,104 @@
-<template name = 'location_editor'>
+<template name = 'location_edit'>
+
+	<div id = "location_edit" class = "card_edit">
+		<h3 class = "aspect_header">Places inside of me:</h3>
+		{{> entity_membership_edit}}
+
+		<h3 class = "aspect_header">Places I am a part of:</h3>
+		{{> entity_membership_edit}}
+
+		<h3 class = "aspect_header">Characters that came from me:</h3>
+		{{> entity_membership_edit}}
+
+		<h3 class = "aspect_header">Events that involved me:</h3>
+		{{> entity_membership_edit}}
+
+	</div>
 
 </template>
 
-<template name = "item_editor">
+<template name = "item_edit">
+<div id = "item_edit" class = "card_edit">
+	<h3 class = "aspect_header">My place of origin:</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">Who wants me</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">Events I was used or involved in:</h3>
+	{{> entity_membership_edit}}
+</div>
+
 </template>
 
-<template name = "faction_editor">
+<template name = "faction_edit">
+<div id = "faction_edit" class = "card_edit">
+	<h3 class = "aspect_header">Places where I can be found:</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">Values and beliefs I uphold:</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">Characters who were/are a part of me:</h3>
+	{{> entity_membership_edit}}
+</div>
+</template>
+
+<template name = "rule_edit">
+<div id = "rule_edit" class = "card_edit">
+	<h3>A description of me:</h3>
+	<textarea class = "form-control" rows = 20></textarea> 
+</div>
+</template>
+
+<template name = "character_edit">
+
+<div id = "character_edit" class = "card_edit">
+	<h3 class = "aspect_header">The place I came from:</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">My race:</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">The factions I was/am a part of:</h3>
+	{{> entity_membership_edit}}
+
+	<h3 class = "aspect_header">Events that I was involved with:</h3>
+	{{> entity_membership_edit}}
+
+</div>
+</template>
+
+<template name = "event_edit">
+<div id = "event_edit" class = "card_edit">
+	<h3>A description of me:</h3>
+	<textarea class = "form-control" rows = 5></textarea>
+
+	<h3>Where did I happen?</h3>
+	{{> entity_membership_edit}}
+
+	<h3>Who was involved in me?</h3>
+	{{> entity_membership_edit}}
+
+	<h3>What was involved in me?</h3>
+	{{> entity_membership_edit}}
+
+	<h3>A description of what happened because of me:</h3>
+	<textarea class = "form-control" rows = 5></textarea>
+</div>
+</template>
+
+<template name = "entity_membership_edit">
+	<div class = "row" id = "new_input_field">
+		<div class = "col-sm-1">
+			<button class = "btn btn-default">X</button>
+		</div>
+		<div class = "col-sm-3">
+			<button class = "btn btn-default">Add Something Already Created</button>
+		</div>
+		<div class = "col-sm-5 col-sm-offset-2">
+			<input type = "text" class = "form-control" id = "entity_name_input" placeholder = "Or make up something new">
+		</div>
+	</div>
+
 </template>
