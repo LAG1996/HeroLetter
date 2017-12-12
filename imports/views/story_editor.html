@@ -1,0 +1,73 @@
+<template name = "edit_story">
+
+	<div class = "container-fluid">
+	    <div class = "page-header">
+		    <h2 id = "editor_header">The Story So Far</h2>
+		</div>
+		<h4 id = "editor_subtitle">Where are we going with this?</h4>
+
+
+			{{#if not_the_story_so_far}}
+				{{> playground}}
+			{{else}}
+				<p>Under construction...</p>
+			{{/if}}
+
+	</div>
+
+</template>
+
+<template name = "playground">
+
+	<div class = "row playground">
+		<div class = "col-4" id = "entity_prev_list">
+
+			{{> empty_warning}}
+
+			<div id = "create_btn"><button class = "btn btn-default open-modal-btn" id = "add_entity_btn" data-toggle="modal" data-target="#edit_modal">Add</button></div>
+
+	     	<div class = "list-group" id = "entity_list">
+
+				{{> entity_prev}}
+
+	     	</div>
+	     </div>
+
+	     <div class = "col-8" id = "entity_card">
+	     	{{> entity_card}}
+	     </div>
+
+	</div>
+
+	{{> edit_entity_modal}}
+
+</template>
+
+<template name = "empty_warning">
+
+	<div class="card border-warning text-danger" id = "empty_panel">
+		<div class = "card-header" id = "empty_warning">
+			No locations, no characters, no story. Check out the World, Location, and Plot panels to Get Started!
+		</div>
+	</div>
+
+</template>
+
+<template name = "entity_card">
+
+
+	<h1 class = "text-center">Name of Entity</h1>
+	<button class = "btn btn-default open-modal-btn" data-toggle="modal" data-target="#edit_modal" id = "edit_entity_btn">Edit</button>
+
+	{{> entity_components_nav}}
+
+    {{#if is_entity}}
+      {{> entity_prev}}
+    {{else}}
+          {{#if is_misc}}
+	      {{> description}}
+	    {{/if}}
+    {{/if}}
+
+</template>
+

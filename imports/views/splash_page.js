@@ -1,0 +1,1 @@
+import './splash_page.html'

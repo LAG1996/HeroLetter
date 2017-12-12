@@ -1,0 +1,17 @@
+<template name = "entity_components_nav">
+	<ul class="nav nav-tabs">
+		
+		{{#each entity_components}}
+			{{> entity_tab}}
+		{{/each}}
+
+	</ul>
+
+	<h3>{{nav_title}}</h3>
+</template>
+
+<template name = "entity_tab">
+	<li class = "nav-item border border border-light entity_tab">
+		<a class = "nav-link entity_tab_link" href="#" id = "{{type}}" aria-selected = "false">{{tab_name}}</a>
+	</li>
+</template>

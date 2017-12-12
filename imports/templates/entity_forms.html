@@ -1,0 +1,43 @@
+<template name = "new_entity_form">
+
+	<div class = "row">
+		<div class = "col-4">
+			<div class="btn-group">
+			  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add an existing entity</button>
+			  <div class="dropdown-menu dropdown-menu-right">
+			    <a href = "#" class="dropdown-item">Entity Name</a>
+			  </div>
+			</div>
+		</div>
+		<div class = "col-8">
+			<input id = "new_other_name_field" type = "text" class = "form-control new_other_name_field" placeholder = "...or make up a new one" data-toggle="popover" title="Press Enter to Create It" data-content="We'll automatically make a new card for ya.">
+		</div>
+	</div>
+
+</template>
+
+<template name = "new_entity_name">
+	<p id = "new-template"></p>
+</template>
+
+<template name = "existing_entity_name">
+	<p id = "old-template"></p>
+</template>
+
+<template name = "new_description_form">
+
+	<form>
+		<div class = "form-group">
+			<textarea class = "form-control" rows = "25" id = "entity_desc_field"></textarea>
+		</div>
+	</form>
+
+</template>
+
+<template name = "entity_prev">
+	<a href = "#" class = "list-group-item playground_entity_prev">Entity Name</a>	
+</template>
+
+<template name = "description">
+	<p>Description</p>
+</template>

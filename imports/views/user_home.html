@@ -1,0 +1,39 @@
+<template name = "user_dashboard">
+	<div class = "container">
+		<h1 class="page-header user-greeting">Hello, {{>username}}!</h1>
+
+		<h3>Which story would you like to edit?</h3>
+
+		{{#each story_triples}}
+
+			<div class ="row">
+				{{> story_prev}}
+				{{> story_prev}}
+				{{> story_prev}}
+			</div>
+
+		{{/each}}
+	</div>
+
+</template>
+
+<template name = "username">
+
+	<span>{{user_name}}</span>
+
+</template>
+
+
+<template name = "story_prev">
+
+	<div class = "col-sm-4">
+		<div class = "card story_prev">
+			<div class = "card-body">
+				<h4 class = "card-title">Story Title</h4>
+				<p class = "card-text">Some description.
+				</p>
+			</div>
+		</div>
+	</div>
+
+</template>

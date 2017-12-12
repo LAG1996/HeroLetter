@@ -1,0 +1,47 @@
+/* CSS declarations go here */
+.user-greeting{
+	border-bottom: solid 1px;
+}
+
+.sidebar {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #f5f5f5;
+    border-right: 1px solid #eee;
+}
+
+#editor_subtitle{
+    font: #d4d4d4;
+}
+
+#entity_list{
+    padding-top: 10px;
+}
+
+#entity_prev_list{
+    border-right: 1px solid #aaa;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    max-height: 52em;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#card{
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    max-height: 52em;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
