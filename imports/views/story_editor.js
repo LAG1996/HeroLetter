@@ -17,6 +17,7 @@ Session.set('entity_or_misc', 'none')
 Session.set('create_or_edit', 'create')
 Session.set('added_existing_entity', false)
 Session.set('selected_tab', '')
+Session.get('current_entity_id', '')
 
 
 var save_info_cache = {
@@ -149,26 +150,23 @@ var states_to_entity_components = {
 	]
 }
 
-var states_to_card_type = {
-	'locations': 'location_card',
-	'items': 'item_card',
-	'characters': 'character_card',
-	'factions': 'faction_card',
-	'rules': 'rule_card',
-	'events': 'event_card'
-}
+var states_to_header_changes = {
 
-var states_to_edit_type = {
-	'locations': 'location_edit',
-	'items': 'item_edit',
-	'characters': 'character_edit',
-	'factions': 'faction_edit',
-	'rules': 'rule_edit',
-	'events': 'event_edit'
+	'locations': function(){ChangeHeaderText('Locations', 'Where did we come from? Where will we go?', "This world is a void. Click Add to make a location")},
+	'items': function(){ChangeHeaderText('Items and Technologies', "All your weapons and McGuffins right here", "You mean to tell me there's no Orb of +99 Confusion? Click Add to make an Item or Technology")},
+	'factions': function(){ChangeHeaderText('Factions and Races', 'Well, some people just gotta have their differences', "Anarchy! Click Add to make a Faction or a Race")},
+	'concepts': function(){ChangeHeaderText('Rules and Concepts', "Pigs can't fly! Or can they?", "Watch out if your totally gritty and realistic war movie suddenly turned into Harry Potter by clicking Add to add some Rules and Concepts")},
+	'characters': function(){ChangeHeaderText('Characters', 'The people we meet along the way.', "A world with no characters. Truly peaceful. Too bad we need a plot. Click Add to make a Protagonist")},
+	'plot_b': function(){ChangeHeaderText('Beginning', '', 'Your plot never started. Click Add to add events to your Begnning')},
+	'plot_r': function(){ChangeHeaderText('Rising Action', '', 'Click Add to add events to the Rising Action of the Plot')},
+	'plot_m': function(){ChangeHeaderText('Middle', "", 'Click Add to add events to the Middle of the Plot')},
+	'plot_f': function(){ChangeHeaderText('Falling Action', "", 'Click Add to add events to the Falling Action of the Plot')},
+	'plot_e': function(){ChangeHeaderText('Ending', "", 'Click Add to add events to the Ending of the Plot')},
+	'story_so_far': function(){ChangeHeaderText('The Story So Far', 'Where are we going with this?', 'No locations, no characters, no story. Check out the World, Location, and Plot panels to Get Started!')}
 }
 
 Template.playground.onRendered(function(){
-	$("#entity_card").hide()
+	//$("#entity_card").hide()
 })
 
 Template.new_entity_name.onRendered(function(){
@@ -181,106 +179,20 @@ Template.new_description_form.onRendered(function(){
 
 Template.sidebar.events({
 
-	'click #locations'(event){
-		ChangeHeaderText('Locations', 'Where did we come from? Where will we go?', "This world is a void. Click Add to make a location")
-
-		Session.set('current_state', 'locations')
-	},
-
-	'click #items'(event){
-
-		ChangeHeaderText('Items and Technologies', "All your weapons and McGuffins right here", 
-			"You mean to tell me there's no Orb of +99 Confusion? Click Add to make an Item or Technology")
-
-		Session.set('current_state', 'items')
-
-	},
-
-	'click #factions'(event){
-		ChangeHeaderText('Factions and Races', 'Well, some people just gotta have their differences', 
-			"Anarchy! Click Add to make a Faction or a Race")
-
-		Session.set('current_state', 'factions')
-	},
-
-	'click #concepts'(event){
-		ChangeHeaderText('Rules and Concepts', "Pigs can't fly! Or can they?", 
-			"Watch out if your totally gritty and realistic war movie suddenly turned into Harry Potter by clicking Add to add some Rules and Concepts")
-
-		Session.set('current_state', 'rules')
-	},
-
-	'click #heroes'(event){
-		ChangeHeaderText('Protagonists', 'The brave hero! Or maybe not so brave...and unheroic...',
-			"A world with no characters. Truly peaceful. Too bad we need a plot. Click Add to make a Protagonist")
-
-		Session.set('current_state', 'characters')
-	},
-
-	'click #villains'(event){
-		ChangeHeaderText('Antagonists', 'The evil one! Or maybe not so evil?',
-			"A world with no characters. Truly peaceful. Too bad we need a plot. Click Add to make an Antagonist")
-
-		Session.set('current_state', 'characters')
-	},
-
-	'click #npc'(event){
-		ChangeHeaderText('Side Characters', 'They may not be the main stars, but we need them.',
-			'Sure is lonely. Click Add to make a Side Character')
-
-		Session.set('current_state', 'characters')
-	},
-
-	'click #plot_b'(event){
-		ChangeHeaderText('Beginning', '',
-			'Your plot never started. Click Add to add events to your Begnning')
-		Session.set('current_state', 'events')
-	},
-
-	'click #plot_r'(event){
-		ChangeHeaderText('Rising Action', '',
-			'Click Add to add events to the Rising Action of the Plot')
-		Session.set('current_state', 'events')
-	},
-
-	'click #plot_m'(event){
-		ChangeHeaderText('Middle', "",
-			'Click Add to add events to the Middle of the Plot')
-		Session.set('current_state', 'events')
-	},
-
-	'click #plot_f'(event){
-		ChangeHeaderText('Falling Action', "",
-			'Click Add to add events to the Falling Action of the Plot')
-		Session.set('current_state', 'events')
-	},
-
-	'click #plot_e'(events){
-		ChangeHeaderText('Ending', "",
-			'Click Add to add events to the Ending of the Plot')
-		Session.set('current_state', 'events')
-	},
-
 	'click #story_so_far'(event){
-		ChangeHeaderText('The Story So Far', 'Where are we going with this?', 
-			'No locations, no characters, no story. Check out the World, Location, and Plot panels to Get Started!')
-
 		Session.set('not_the_story_so_far', false)
+		SwitchStates(event.target.id)
 	},
 
 	'click .entity_type_switch'(event){
-		Session.set('entity_selected', false)
+
 		Session.set('not_the_story_so_far', true)
 		Session.set('entity_or_misc', 'none')
+		Session.set('selected_tab', '')
+		Session.set('entity_selected', false)
 
-		$("#entity_card").hide()
+		SwitchStates(event.target.id)
 
-		let type = Session.get('current_state')
-		let entity_list = states_to_entity_components[type]
-		if(entity_list)
-		{
-			Session.set('entity_component_list', entity_list)
-		}
 	},
 })
 
@@ -289,20 +201,13 @@ Template.playground.events({
 	'click .playground_entity_prev'(event){
 
 		Session.set('entity_selected', true)
+		Session.set('current_entity_id', event.target.id)
 
-		let type = Session.get('current_state')
+		let entity = Entities.findOne({_id: event.target.id})
 
-		if(states_to_card_type[type])
-		{
-			$("#entity_card").show()
-		}
+		SwitchStates(entity.type)
+
 	},
-
-	'focusout .playground'(event){
-		Session.set('entity_or_misc', false)
-		Session.set('selected_tab', '')
-	},
-
 })
 
 Template.new_description_form.events({
@@ -469,15 +374,47 @@ Template.new_entity_form.events({
 	}
 })
 
+Template.playground.helpers({
+
+	entity(){
+		return Entities.find({type: Session.get("current_state")})
+	},
+	entity_selected(){
+		return Session.get("entity_selected")
+	}
+
+})
+
+Template.new_entity_form.helpers({
+	entity(){
+
+		return GetEntityListLoose()
+	}
+})
+
 Template.entity_card.helpers({
 	is_entity(){
 		return Session.get('entity_or_misc') != 'desc' && Session.get('entity_or_misc') != ''
 	},
 	is_misc(){
 		return Session.get('entity_or_misc') != ''
+	},
+	name(){
+		return Entities.findOne({_id: Session.get('current_entity_id')}).name
+	},
+	entity(){
+
+		return GetEntityListStrict()
 	}
 })
 
+Template.description.helpers({
+	description(){
+
+		return Entities.findOne({_id: Session.get("current_entity_id")}).desc
+
+	}
+})
 
 Template.edit_entity_modal.helpers({
 	is_entity(){
@@ -521,6 +458,22 @@ function ChangeHeaderText(header = "", subtitle = "", empty_warning = "")
 	$('#editor_header').text(header)
 	$('#editor_subtitle').text(subtitle)
 	$('#empty_warning').text(empty_warning)
+}
+
+function SwitchStates(state)
+{
+	console.log("Switching state")
+
+	Session.set('current_state', state)
+
+	states_to_header_changes[state]()
+
+	let type = Session.get('current_state')
+	let entity_list = states_to_entity_components[type]
+	if(entity_list)
+	{
+		Session.set('entity_component_list', entity_list)
+	}
 }
 
 function HandleSave()
@@ -569,6 +522,7 @@ function CreateEntry()
 
 		var inside_array_collection = []
 		var contains_array_collection = []
+		var new_id = -1
 
 		for(var e in save_info_cache.entities)
 		{
@@ -604,7 +558,7 @@ function CreateEntry()
 		}
 
 		//Create a new entity for this new object
-		Entities.insert({
+		new_id = Entities.insert({
 			type: save_info_cache.type,
 			name: save_info_cache.name,
 			contained_by: inside_array_collection,
@@ -612,6 +566,23 @@ function CreateEntry()
 			events: save_info_cache.events,
 			desc: save_info_cache.desc
 		})
+	}
+
+	//Now, for all entities that contain this entity, add them to their contains array
+
+	for(var i in inside_array_collection)
+	{
+		var id = inside_array_collection[i]	
+
+		Entities.update({_id: id}, {$addToSet: {contains: new_id}})
+	}
+
+	//Now, for all entities that this entity contains, add them to their contained_by array
+	for(var i in contains_array_collection)
+	{
+		var id = contains_array_collection[i]	
+
+		Entities.update({_id: id}, {$addToSet: {contained_by: new_id}})
 	}
 }
 
@@ -621,6 +592,73 @@ function EditEntry()
 	let entity_id = 
 }
 */
+
+function GetEntityListStrict(){
+		let current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+
+		console.log(current_entity)
+
+		var tab = DetermineTab()
+
+		if(tab.type != "desc")
+		{
+			if(tab.type == "event")
+			{
+				return current_entity.events
+			}
+			else
+			{
+				let list_of_stuff = []
+				let id_list = []
+				if(tab.relation == "smaller")
+				{
+					id_list = current_entity.contained_by
+				}
+				else
+				{
+
+					id_list = current_entity.contains
+				}
+
+				for(var id in id_list)
+				{
+					let e = Entities.findOne({_id: id_list[id]})
+					if(e.type == tab.type)
+					{
+						list_of_stuff.push(e)
+					}
+				}
+
+				console.log("List of stuff: ")
+				console.log(list_of_stuff)
+				return list_of_stuff
+			}
+		}
+}
+
+function GetEntityListLoose(){
+
+	let current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+
+	console.log(current_entity)
+
+	var tab = DetermineTab()
+
+	var id_list = []
+	if(tab.type == "event")
+	{
+		id_list = current_entity.events
+	}
+	else if(tab.type != "desc")
+	{
+		return Entities.find({type: tab.type}, {_id: 1, name: 1})
+	}
+	else
+	{
+
+	}
+
+}
 
 function DetermineTab()
 {

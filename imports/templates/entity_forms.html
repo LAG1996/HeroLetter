@@ -5,7 +5,9 @@
 			<div class="btn-group">
 			  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add an existing entity</button>
 			  <div class="dropdown-menu dropdown-menu-right">
-			    <a href = "#" class="dropdown-item">Entity Name</a>
+			  	{{#each entity}}
+			  		{{> entity_prev}}
+			  	{{/each}}
 			  </div>
 			</div>
 		</div>
@@ -35,9 +37,13 @@
 </template>
 
 <template name = "entity_prev">
-	<a href = "#" class = "list-group-item playground_entity_prev">Entity Name</a>	
+	<a href = "#" class = "list-group-item playground_entity_prev" id = "{{_id}}">{{name}}</a>	
+</template>
+
+<template name = "entity_prev_dropdown">
+	<a href = "#" class = "dropdown-item" id = "{{_id}}">{{name}}</a>	
 </template>
 
 <template name = "description">
-	<p>Description</p>
+	<p>{{description}}</p>
 </template>

@@ -3,11 +3,6 @@ import { ReactiveVar } from 'meteor/reactive-var'
 import { Session } from 'meteor/session'
 import { Mongo } from 'meteor/mongo'
 
-//Import the databases we're going to be dealing with
-import { Entities } from '../imports/api/entities.js'
-import { Events } from '../imports/api/events.js'
-import { Stories } from '../imports/api/stories.js'
-
 import '../imports/startup/accounts-config.js'
 
 import '../imports/templates/navbar.js'

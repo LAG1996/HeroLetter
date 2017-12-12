@@ -28,13 +28,17 @@
 
 	     	<div class = "list-group" id = "entity_list">
 
-				{{> entity_prev}}
+				{{#each entity}}
+					{{> entity_prev}}
+				{{/each}}
 
 	     	</div>
 	     </div>
 
 	     <div class = "col-8" id = "entity_card">
-	     	{{> entity_card}}
+	     	{{#if entity_selected}}
+	     		{{> entity_card}}
+	     	{{/if}}
 	     </div>
 
 	</div>
@@ -56,17 +60,23 @@
 <template name = "entity_card">
 
 
-	<h1 class = "text-center">Name of Entity</h1>
+	<h1 class = "text-center">{{name}}</h1>
 	<button class = "btn btn-default open-modal-btn" data-toggle="modal" data-target="#edit_modal" id = "edit_entity_btn">Edit</button>
 
 	{{> entity_components_nav}}
 
     {{#if is_entity}}
-      {{> entity_prev}}
+
+      {{#each entity}}
+      	{{> entity_prev}}
+      {{/each}}
+
     {{else}}
-          {{#if is_misc}}
-	      {{> description}}
+
+        {{#if is_misc}}
+	      	{{> description}}
 	    {{/if}}
+	    
     {{/if}}
 
 </template>
