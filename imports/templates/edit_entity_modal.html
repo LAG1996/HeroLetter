@@ -14,28 +14,27 @@
           <label for = "entity_name">My name:</label>
           <input type = "text" id = "entity_name" class = "form-control" placeholder = "Noname">
 
+          {{#if is_event_state}}
+            <label for = "event_time">The time I happened:</label>
+            <input type = "text" id = "event_time" class = "form-control" placeholder = "The land before time">
+          {{/if}}
+
           {{> entity_components_nav}}
-
-          {{#each entities}}
-
-            An entity, and a button to delete
-
-          {{/each}}
 
           {{#if is_entity}}
             {{> new_entity_form}}
           {{else}}
-                {{#if is_misc}}
+              {{#if is_misc}}
               {{> new_description_form}}
             {{/if}}
           {{/if}}
 
-        <div id = "previewer">
+        <div id = "modal_entity_previewer">
             {{> new_entity_name}}
         </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-default" id = "modal_close">Close</button>
           <button type="button" class="btn btn-primary" id = "modal_save">Save Changes</button>
         </div>
       </div>

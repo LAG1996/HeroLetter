@@ -6,7 +6,7 @@
 			  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add an existing entity</button>
 			  <div class="dropdown-menu dropdown-menu-right">
 			  	{{#each entity}}
-			  		{{> entity_prev}}
+			  		{{> entity_prev_dropdown}}
 			  	{{/each}}
 			  </div>
 			</div>
@@ -22,10 +22,6 @@
 	<p id = "new-template"></p>
 </template>
 
-<template name = "existing_entity_name">
-	<p id = "old-template"></p>
-</template>
-
 <template name = "new_description_form">
 
 	<form>
@@ -36,12 +32,16 @@
 
 </template>
 
+<template name = "event_prev">
+	<a href = "#" class = "list-group-item playground_entity_prev" id = "{{_id}}">{{time}} : {{name}}</a>
+</template>
+
 <template name = "entity_prev">
 	<a href = "#" class = "list-group-item playground_entity_prev" id = "{{_id}}">{{name}}</a>	
 </template>
 
 <template name = "entity_prev_dropdown">
-	<a href = "#" class = "dropdown-item" id = "{{_id}}">{{name}}</a>	
+	<a href = "#" class = "dropdown-item existing_entity_dropdown_btn" id = "{{_id}}">{{name}}</a>	
 </template>
 
 <template name = "description">

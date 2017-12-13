@@ -1,6 +1,7 @@
 <template name = "sidebar">
   <div id = "sidebar">
     <nav class="nav flex-column">
+      <h3>{{story_title}}</h3>
       <div class = "list-group">
         <a href = "#settings_entities" id = "setting_toggle" class = "list-group-item" data-toggle="collapse" aria-expanded = "false" aria-controls = "settings_entities">Setting</a>
       </div>
@@ -24,12 +25,8 @@
         <a href = "#plot_entities" id = "plot_toggle" class = "list-group-item" data-toggle="collapse" aria-expanded = "false" aria-controls = "plot_entities">Plot</a>
       </div>
       <div class = "collapse" id = "plot_entities">
-          <div class = "row ml-3"><a href="#" id = "plot_b" class = "entity_type_switch">Beginning</a></div>
-          <div class = "row ml-3"><a href="#" id = "plot_r" class = "entity_type_switch">Rising Action</a></div>
-          <div class = "row ml-3"><a href="#" id = "plot_m" class = "entity_type_switch">Middle</a></div>
-          <div class = "row ml-3"><a href="#" id = "plot_f" class = "entity_type_switch">Falling Action</a></div>
-          <div class = "row ml-3"><a href="#" id = "plot_e" class = "entity_type_switch">End</a></div>
-          <div class = "row ml-3"><a href = "#" id = "story_so_far">The Story So Far</a></div>
+          <div class = "row ml-3"><a href="#" id = "events" class = "entity_type_switch">Events</a></div>
+          <!--<div class = "row ml-3"><a href = "#" id = "story_so_far">The Story So Far</a></div>-->
       </div>
     </nav>
   </div>

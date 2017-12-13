@@ -1,0 +1,25 @@
+<template name = "new_story_modal">
+  <div class="modal" tabindex="-1" role="dialog" id = "new_story_modal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Story</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <label for = "story_title">Title</label>
+          <input type = "text" id = "story_title" class = "form-control" placeholder = "Noname">
+
+          <label for = "story_desc">Description</label>
+          <input type = "text" id = "story_desc" class = "form-control" placeholder = "Noname">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id = "create_story_btn">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

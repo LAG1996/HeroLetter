@@ -29,6 +29,15 @@ var save_info_cache = {
 	desc: ''
 }
 
+var save_event_cache = {
+
+	name: '',
+	time: '',
+	entities: [],
+	desc: ''
+
+}
+
 var new_events = []
 
 var new_entities = []
@@ -100,7 +109,7 @@ var states_to_entity_components = {
 		type: 'desc',
 		tab_name: 'A little more about me'
 	}],
-	'rules': [
+	'concepts': [
 	{
 		type: 'desc',
 		tab_name: 'A description'
@@ -132,10 +141,6 @@ var states_to_entity_components = {
 		tab_name: "Where did I happen?"
 	},
 	{
-		type: "desc",
-		tab_name: "When did I happen?"
-	},
-	{
 		type: "characters",
 		tab_name: "Who was involved in me?"
 	},
@@ -157,13 +162,13 @@ var states_to_header_changes = {
 	'factions': function(){ChangeHeaderText('Factions and Races', 'Well, some people just gotta have their differences', "Anarchy! Click Add to make a Faction or a Race")},
 	'concepts': function(){ChangeHeaderText('Rules and Concepts', "Pigs can't fly! Or can they?", "Watch out if your totally gritty and realistic war movie suddenly turned into Harry Potter by clicking Add to add some Rules and Concepts")},
 	'characters': function(){ChangeHeaderText('Characters', 'The people we meet along the way.', "A world with no characters. Truly peaceful. Too bad we need a plot. Click Add to make a Protagonist")},
-	'plot_b': function(){ChangeHeaderText('Beginning', '', 'Your plot never started. Click Add to add events to your Begnning')},
-	'plot_r': function(){ChangeHeaderText('Rising Action', '', 'Click Add to add events to the Rising Action of the Plot')},
-	'plot_m': function(){ChangeHeaderText('Middle', "", 'Click Add to add events to the Middle of the Plot')},
-	'plot_f': function(){ChangeHeaderText('Falling Action', "", 'Click Add to add events to the Falling Action of the Plot')},
-	'plot_e': function(){ChangeHeaderText('Ending', "", 'Click Add to add events to the Ending of the Plot')},
+	'events': function(){ChangeHeaderText('Events', '', "Well, you want to tell a story, don't you? Press Add to create some events!")},
 	'story_so_far': function(){ChangeHeaderText('The Story So Far', 'Where are we going with this?', 'No locations, no characters, no story. Check out the World, Location, and Plot panels to Get Started!')}
 }
+
+Template.edit_story.onRendered(function(){
+	console.log("Editing story: " + Session.get("story_id"))
+})
 
 Template.playground.onRendered(function(){
 	//$("#entity_card").hide()
@@ -205,7 +210,15 @@ Template.playground.events({
 
 		let entity = Entities.findOne({_id: event.target.id})
 
-		SwitchStates(entity.type)
+		if(entity)
+			SwitchStates(entity.type)
+		else
+		{
+			let eve = Events.findOne({_id: event.target.id})
+
+			if(eve)
+				SwitchStates("events")
+		}
 
 	},
 })
@@ -228,19 +241,12 @@ Template.entity_components_nav.events({
 
 		Session.set('selected_tab', $(obj).text())
 
-		if($("#edit_modal").is(':visible'))
-		{
-			SaveToCache()
-		}
-
-		console.log(save_info_cache)
-
 		let o = $("#new-template").clone()
 
-		$("#previewer").empty()
+		$("#modal_entity_previewer").empty()
 		$("#new_other_name_field").val("")
 
-		$("#previewer").append(o)
+		$("#modal_entity_previewer").append(o)
 
 		let tab = DetermineTab()
 
@@ -253,7 +259,7 @@ Template.entity_components_nav.events({
 				{
 					let obj = $("#new-template").clone()
 					obj.text(save_info_cache.events[e].name)
-					$("#previewer").append(obj)
+					$("#modal_entity_previewer").append(obj)
 					$(obj).show()
 				}
 			}
@@ -267,7 +273,7 @@ Template.entity_components_nav.events({
 						{
 							let obj = $("#new-template").clone()
 							obj.text(save_info_cache.entities[e].name)
-							$("#previewer").append(obj)
+							$("#modal_entity_previewer").append(obj)
 							$(obj).show()
 						}
 					}
@@ -280,7 +286,7 @@ Template.entity_components_nav.events({
 						{
 							let obj = $("#new-template").clone()
 							obj.text(save_info_cache.entities[e].name)
-							$("#previewer").append(obj)
+							$("#modal_entity_previewer").append(obj)
 							$(obj).show()
 						}
 					}
@@ -294,12 +300,22 @@ Template.edit_entity_modal.events({
 	'click #modal_save'(event){
 
 		HandleSave()
+
+		CloseModal()
+
+	},
+
+	'click #modal_close'(event){
+
+		CloseModal()
+
 	}
 })
 
 Template.edit_story.events({
 	'click #add_entity_btn'(event){
 		Session.set('create_or_edit', 'create')
+		ClearModal()
 	},
 
 })
@@ -307,6 +323,7 @@ Template.edit_story.events({
 Template.entity_card.events({
 	'click #edit_entity_btn'(event){
 		Session.set('create_or_edit', 'edit')
+		ClearModal()
 	}
 })
 
@@ -336,53 +353,120 @@ Template.new_entity_form.events({
 				return
 			}
 
-			let obj = $("#new-template").clone()
-
-			$(obj).attr("id", "new")
-			$(obj).text($("#new_other_name_field").val())
-
-			let tab = DetermineTab()
-
-			console.log(tab.type)
-			if(tab.type != "desc")
+			if(Session.get("current_state") == "events")
 			{
-				if(tab.type == "event")
-				{
-					$(obj).attr("class", "events")
-					new_events.push({new: true, name: $(obj).text(), type: "event"})
-				}
-				else
-				{
-					if(tab.relation == "smaller")
-					{
-						$(obj).attr("class", "contained_by")
-						new_entities.push({new: true, name: $(obj).text(), contained_by: true, type: tab.type})
-					}
-					else
-					{
-						$(obj).attr("class", "contains")
-						new_entities.push({new: true, name: $(obj).text(), contained_by: false, type: tab.type})
-					}
-				}
+				let action = Session.get('create_or_edit')
 
-				$("#new_other_name_field").val("")
-				$("#previewer").append($(obj))
+				if(action == 'create')
+					SavePreviewToEventsCache(true)
+				console.log('adding a new item to an existing event')
+			}
+			else
+			{
+				let action = Session.get('create_or_edit')
 
-				$(obj).show()
+				if(action == 'create')
+					SavePreviewToEntityCache(true)
+				console.log('adding a new item to an existing entity')
 			}
 		}
-	}
+	},
+	'click .existing_entity_dropdown_btn'(event){
+
+		if(Session.get("current_state") == "events")
+		{
+			let action = Session.get("create_or_edit")
+			if(action == 'create')
+				SavePreviewToEventsCache(false)
+			else
+				console.log('adding an existing item to an existing event')
+		}
+		else
+		{
+			let action = Session.get("create_or_edit")
+			if(action == 'create')
+				SavePreviewToEntityCache(false)
+			console.log('adding an existing item to an existing entity')
+		}
+	},
 })
 
 Template.playground.helpers({
 
 	entity(){
-		return Entities.find({type: Session.get("current_state")})
+		if(Session.get("current_state") == "events")
+		{
+			let story = Stories.findOne({_id: Session.get("story_id")})
+
+			let list_of_stuff = []
+
+			for(var i in story.events)
+			{
+				list_of_stuff.push(Events.findOne({_id: story.events[i]}))
+			}
+
+			return list_of_stuff
+		}
+		else
+		{
+			let story = Stories.findOne({_id: Session.get("story_id")})
+
+			let list_of_stuff = []
+
+			for(var i in story.entities)
+			{
+				let entity = Entities.findOne({_id: story.entities[i]})
+				if(entity.type == Session.get("current_state"))
+					list_of_stuff.push(entity)
+			}
+
+			return list_of_stuff
+		}
 	},
 	entity_selected(){
 		return Session.get("entity_selected")
+	},
+	is_event_state(){
+		return Session.get("current_state") == "events"
+	},
+	show_warning(){
+
+		if(Session.get("not_the_story_so_far"))
+		{
+			let story = Stories.findOne({_id: Session.get("story_id")})
+
+			let list_of_stuff = []
+
+			if(Session.get("current_state") == "events")
+			{
+				return story.events.length == 0
+			}
+			else
+			{
+				for(var e in story.entities)
+				{
+					if(Session.get("current_state") == Entities.findOne({_id: story.entities[e]}).type)
+						return false
+				}
+				return true
+			}
+
+
+			return list_of_stuff
+		}
+		else
+		{
+			return false
+		}
+
 	}
 
+})
+
+Template.sidebar.helpers({
+	story_title(){
+		return Stories.findOne({_id: Session.get("story_id")}).name
+	}
 })
 
 Template.new_entity_form.helpers({
@@ -394,12 +478,17 @@ Template.new_entity_form.helpers({
 
 Template.entity_card.helpers({
 	is_entity(){
-		return Session.get('entity_or_misc') != 'desc' && Session.get('entity_or_misc') != ''
+		return Session.get('entity_or_misc') != 'desc' && Session.get('entity_or_misc') != 'none'
 	},
 	is_misc(){
-		return Session.get('entity_or_misc') != ''
+		return Session.get('entity_or_misc') != 'none'
 	},
 	name(){
+
+		if(Session.get('current_state') == "events")
+		{
+			return Events.findOne({_id: Session.get('current_entity_id')}).name
+		}
 		return Entities.findOne({_id: Session.get('current_entity_id')}).name
 	},
 	entity(){
@@ -418,10 +507,10 @@ Template.description.helpers({
 
 Template.edit_entity_modal.helpers({
 	is_entity(){
-		return Session.get('entity_or_misc') != 'desc' && Session.get('entity_or_misc') != ''
+		return Session.get('entity_or_misc') != 'desc' && Session.get('entity_or_misc') != 'none'
 	},
 	is_misc(){
-		return Session.get('entity_or_misc') != ''
+		return Session.get('entity_or_misc') != 'none'
 	},
 	create_or_edit(){
 		let action = Session.get('create_or_edit')
@@ -434,6 +523,9 @@ Template.edit_entity_modal.helpers({
 		{
 			return 'Edit Entity Name'
 		}
+	},
+	is_event_state(){
+		return Session.get('current_state') == 'events'
 	}
 })
 
@@ -453,6 +545,28 @@ Template.edit_story.helpers({
 	},
 })
 
+function CloseModal(){
+
+	$("#edit_modal").modal("hide")
+}
+
+function ClearModal(){
+
+	$("#entity_name").val("")
+
+	let save_new = $("#new-template").clone()
+
+	$("#modal_entity_previewer").empty()
+
+	$("#modal_entity_previewer").append(save_new)
+
+	Session.set('entity_or_misc', 'none')
+	Session.set('selected_tab', '')
+	Session.set('entity_or_misc', 'none')
+	Session.set('selected_tab', '')
+
+}
+
 function ChangeHeaderText(header = "", subtitle = "", empty_warning = "")
 {
 	$('#editor_header').text(header)
@@ -462,7 +576,7 @@ function ChangeHeaderText(header = "", subtitle = "", empty_warning = "")
 
 function SwitchStates(state)
 {
-	console.log("Switching state")
+	console.log("Switching state to " + state)
 
 	Session.set('current_state', state)
 
@@ -478,11 +592,11 @@ function SwitchStates(state)
 
 function HandleSave()
 {
-	SaveToCache()
+	SaveCache()
 
-	if(save_info_cache.name == "")
+	if(!Validate())
 	{
-		console.log("Need a name to save, at least")
+		console.log("Check input")
 		return
 	}
 
@@ -494,30 +608,179 @@ function HandleSave()
 	}
 	else if(action == 'edit')
 	{
-		//EditEntry()
+		EditEntry()
+	}
+
+	CloseModal()
+}
+
+function Validate(){
+	if(Session.get('current_state') == 'events')
+	{
+		return save_event_cache.name != "" && save_event_cache.time != ""
+	}
+	else
+	{
+		return save_info_cache.name != ""
 	}
 }
 
-
-function SaveToCache()
+function SavePreviewToEventsCache(new_entry)
 {
-	save_info_cache.name = $("#entity_name").val()
+	let obj = $("#new-template").clone()
 
-	save_info_cache.type = Session.get('current_state')
+	if(new_entry)
+	{
+		$(obj).text($("#new_other_name_field").val())
+	}
+	else
+	{
+		let entity = Entities.findOne({_id: event.target.id})
 
-	save_info_cache.entities = new_entities
+		$(obj).text(entity.name)
+	}
 
-	save_info_cache.events = new_events
+	let tab = DetermineTab()
+	if(new_entry)
+		save_event_cache.entities.push({new: new_entry, name: $(obj).text(), type: tab.type})
+	else
+		save_event_cache.entities.push({new: new_entry, name: $(obj).attr("id"), type: tab.type})
+
+	$("#modal_entity_previewer").append($(obj))
+	$(obj).show()
 }
+
+function SavePreviewToEntityCache(new_entry)
+{
+	let obj = $("#new-template").clone()
+
+	if(new_entry)
+	{
+		$(obj).text($("#new_other_name_field").val())
+		$(obj).attr("id", "new")
+	}
+	else
+	{
+		let entity = Entities.findOne({_id: event.target.id})
+
+		$(obj).text(entity.name)
+
+		$(obj).attr("id", event.target.id)
+	}
+
+	let tab = DetermineTab()
+
+	console.log(tab.type)
+	if(tab.type != "desc" && tab.type != "event")
+	{
+		if(tab.relation == "smaller")
+		{
+			if(new_entry)
+			{
+				save_info_cache.entities.push({new: new_entry, name: $(obj).text(), contained_by: true, type: tab.type})
+			}
+			else
+			{
+				save_info_cache.entities.push({new: new_entry, id: $(obj).attr("id"), contained_by: true, type: tab.type})
+			}
+
+		}
+		else
+		{
+			if(new_entry)
+			{
+				save_info_cache.entities.push({new: new_entry, contained_by: true, type: tab.type})
+			}
+			else
+			{
+				save_info_cache.entities.push({new: new_entry, id: $(obj).attr("id"), contained_by: true, type: tab.type})
+			}
+		}
+
+	}
+
+	$("#modal_entity_previewer").append($(obj))
+
+	$(obj).show()
+}
+
+function SaveCache()
+{
+	if(Session.get('current_state') == 'events')
+	{
+		save_event_cache.name = $("#entity_name").val()
+		save_event_cache.time = $("#event_time").val()
+	}
+	else
+	{
+		save_info_cache.name = $("#entity_name").val()
+		save_info_cache.type = Session.get('current_state')	
+	}
+}
+
 
 //Make a new entry to the database
 function CreateEntry()
 {
 
 	if(Session.get('current_state') == 'events')
-	{}
+	{
+		console.log("Saving from events cache")
+		console.log(save_event_cache)
+
+
+
+		//Go through all entities and create new ones that haven't been created already
+
+		var entity_id_list = []
+
+		for(var e in save_event_cache.entities)
+		{
+
+			let entity = save_event_cache.entities[e]
+
+			let id = -1
+
+			if(entity.new)
+			{
+				id = Entities.insert({
+					type: entity.type,
+					name: entity.name,
+					contained_by: [],
+					contains: [],
+					events: [],
+					desc: ""
+				})
+
+				Stories.update({_id: Session.get("story_id")}, {$addToSet: {entities: id}})
+			}
+			else
+				id = entity.id
+
+			entity_id_list.push(id)
+		}
+
+		let new_id = Events.insert({
+			name: save_event_cache.name,
+			time: save_event_cache.time,
+			entities: entity_id_list,
+			desc: save_event_cache.desc
+		})
+
+		Stories.update({_id: Session.get("story_id")}, {$addToSet: {events: new_id}})
+
+		for(var i in entity_id_list)
+		{
+			var id = entity_id_list[i]
+
+			Entities.update({_id: id}, {$addToSet: {events: new_id}})
+		}
+	}
 	else
 	{
+		console.log("Saving from entity cache")
+		console.log(save_info_cache)
+
 		//Go through all entities and divide them by ones that this new object is smaller than
 
 		var inside_array_collection = []
@@ -542,31 +805,34 @@ function CreateEntry()
 					desc: ""
 				})
 
-				if(entity.contained_by)
-				{
-					inside_array_collection.push(id)
-				}
-				else
-				{
-					contains_array_collection.push(id)
-				}
+				Stories.update({_id: Session.get("story_id")}, {$addToSet: {entities: id}})
 			}
 			else
 			{
-				//Get the id of this object and add it to the appropriate array
+				id = entity.id
+			}
+			if(entity.contained_by)
+			{
+				inside_array_collection.push(id)
+			}
+			else
+			{
+				contains_array_collection.push(id)
 			}
 		}
-
-		//Create a new entity for this new object
-		new_id = Entities.insert({
-			type: save_info_cache.type,
-			name: save_info_cache.name,
-			contained_by: inside_array_collection,
-			contains: contains_array_collection,
-			events: save_info_cache.events,
-			desc: save_info_cache.desc
-		})
 	}
+
+	//Create a new entity for this new object
+	new_id = Entities.insert({
+		type: save_info_cache.type,
+		name: save_info_cache.name,
+		contained_by: inside_array_collection,
+		contains: contains_array_collection,
+		events: save_info_cache.events,
+		desc: save_info_cache.desc
+	})
+
+	Stories.update({_id: Session.get("story_id")}, {$addToSet: {entities: new_id}})
 
 	//Now, for all entities that contain this entity, add them to their contains array
 
@@ -586,15 +852,25 @@ function CreateEntry()
 	}
 }
 
-/*
+
 function EditEntry()
 {
-	let entity_id = 
+	console.log("Editing entity...")
+
 }
-*/
+
 
 function GetEntityListStrict(){
-		let current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+		let current_entity = {}
+
+		if(Session.get('current_state') == 'events')
+		{
+			current_entity = Events.findOne({_id: Session.get('current_entity_id')})
+		}
+		else
+		{
+			current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+		}
 
 		console.log(current_entity)
 
@@ -602,22 +878,42 @@ function GetEntityListStrict(){
 
 		if(tab.type != "desc")
 		{
-			if(tab.type == "event")
+			if(tab.type == "events")
 			{
-				return current_entity.events
+				let id_list = current_entity.events
+				let list_of_stuff = []
+				for(var id in id_list)
+				{
+					let e = Events.findOne({_id: id_list[id]})
+					list_of_stuff.push(e)
+				}
+
+				console.log("Events: ")
+				console.log(current_entity.events)
+
+				console.log("List of stuff: ")
+				console.log(list_of_stuff)
+				return list_of_stuff
 			}
 			else
 			{
 				let list_of_stuff = []
 				let id_list = []
-				if(tab.relation == "smaller")
+				if(Session.get('current_state') == 'events')
 				{
-					id_list = current_entity.contained_by
+					id_list = current_entity.entities
 				}
 				else
 				{
+					if(tab.relation == "smaller")
+					{
+						id_list = current_entity.contained_by
+					}
+					else
+					{
 
-					id_list = current_entity.contains
+						id_list = current_entity.contains
+					}
 				}
 
 				for(var id in id_list)
@@ -638,7 +934,16 @@ function GetEntityListStrict(){
 
 function GetEntityListLoose(){
 
-	let current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+	let current_entity = null
+
+	if(Session.get('current_state') == 'events')
+	{
+		current_entity = Events.findOne({_id: Session.get('current_entity_id')})
+	}
+	else
+	{
+		current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+	}
 
 	console.log(current_entity)
 
@@ -653,11 +958,6 @@ function GetEntityListLoose(){
 	{
 		return Entities.find({type: tab.type}, {_id: 1, name: 1})
 	}
-	else
-	{
-
-	}
-
 }
 
 function DetermineTab()

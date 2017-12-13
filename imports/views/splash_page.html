@@ -2,25 +2,32 @@
 
 	<div class = "container">	
 		<div class = "jumbotron">	
-			<h1>This is Hero Letter</h1>
-			<p>Everybody's got a story. Go and tell yours.</p>
+			<h1>This is Autoline</h1>
+			<p>A valuable tool for any creative writer.</p>
 		</div>
+		<blockquote class = "blockquote">
+			<p>People have been telling stories forever. But why is it so hard? We think it's because of the planning. Stories all have the same components, but it's so easy to get lost in the details. Sometimes you'll forget who a character is, sometimes your realistic crime film turned into a musical. It can all get pretty hectic. Autoline's here to make it all easier.</p>
+		</blockquote>
 
-		<h3>With Hero Letter, make writing a personal statement for your future job quick and easy.</h3>
-		<p>People have been telling stories forever. But why is it so hard? Hero Letter knows the parts that make a good story tick. All you need to do is tell it about yourself, and it'll help make your story great.</p>
-		<ul>
-			<li>Get <emph>results</emph>. No vague directions or ideas. You want a good essay. You'll get one.</li>
-			<li>Skip the wait for tutors and editors.</li>
-			<li>Get a great first impression with potential employers</li>
-		</ul>
+		<h3 class = "display-3">With Autoline, planning out a story can be made easy and painless.</h3>
 
+		<p>Let's face it: planning out your story sucks. It can be tedious. You can forget things.</p>
+
+		<h2>Story Scaffolding Made Easy</h2>
+		<p>We broke down story writing into simple components: setting, characters, and plot. No matter how complicated your story, you'll have all the flexibility you need to plan it out, while not getting too lost in the basics.</p>
+
+		<h2>Keeping Up Consistency</h2>
+		<p>Create new components for your story on the fly. Just thought of a new character from a new country in your world? No problem. Autoline will keep track of all of it. You'll even be able to navigate between components with a simple click.</p>
+
+		<h2>Manage Multiple Stories</h2>
+		<p>Creative minds can never stay in one spot! Manage multiple stories, and navigate between them with our easy to use interface.</p>
 
 		{{#if currentUser }}
 			<p>Hey! You're already a member! Click here to check out your stories!</p>
-			<a href = "{{pathFor 'user_home'}}" role = "button" class = "btn btn-primary">My Stories</a>
+			<a href = "{{pathFor 'user_home'}}" role = "button" class = "btn btn-outline-primary">My Stories</a>
 		{{else}}
 			<p>Ready to tell your story? Click right here.</p>
-			<a href = "{{pathFor 'user_login'}}" role = "button" class = "btn btn-primary">Sign up for an account...</a>
+			<a href = "{{pathFor 'user_login'}}" role = "button" class = "btn btn-outline-primary">Sign up for an account...</a>
 		{{/if}}
 	</div>
 </template>

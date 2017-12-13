@@ -16,6 +16,7 @@ import '../imports/views/story_editor.js'
 import '../imports/startup/routes.js'
 
 Session.set("in_editor", false)
+Session.set("story_id", '')
 
 Template.body.helpers({
 
