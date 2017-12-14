@@ -23,19 +23,21 @@
 
           {{#if is_entity}}
             {{> new_entity_form}}
+            <h4>Stuff you already added.</h4>
+            <p class = "lead">Click on them to remove them.</p>
           {{else}}
               {{#if is_misc}}
               {{> new_description_form}}
             {{/if}}
           {{/if}}
 
-        <div id = "modal_entity_previewer">
+        <ul id = "modal_entity_previewer" class = "list-group">
             {{> new_entity_name}}
-        </div>
+        </ul>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" id = "modal_close">Close</button>
-          <button type="button" class="btn btn-primary" id = "modal_save">Save Changes</button>
+          <!--<button type="button" class="btn btn-default" id = "modal_close" data-dismiss = "modal">Close</button>-->
+          <button type="button" class="btn btn-outline-primary" id = "modal_save" data-dismiss = "modal">Save Changes</button>
         </div>
       </div>
     </div>

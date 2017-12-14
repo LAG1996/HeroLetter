@@ -1,15 +1,14 @@
 import '../templates/entity_nav_tabs.html'
-import '../templates/edit_entity_modal.html'
+import '../templates/edit_entity_modal.js'
 import '../templates/entity_forms.html'
+
 import './story_editor.html'
 
 //Import the databases we're going to be dealing with
-import { Entities } from '../api/entities.js'
-import { Events } from '../api/events.js'
-import { Stories } from '../api/stories.js'
+import { entity_manager } from '../api/database_interact.js'
 
 
-Session.set('entity_selected', false)
+Session.set('show_card', false)
 Session.set('not_the_story_so_far', false)
 Session.set('current_state', '')
 Session.set('entity_component_list', null)
@@ -17,26 +16,18 @@ Session.set('entity_or_misc', 'none')
 Session.set('create_or_edit', 'create')
 Session.set('added_existing_entity', false)
 Session.set('selected_tab', '')
-Session.get('current_entity_id', '')
+Session.set('amt_entities', 0)
+Session.set('current_entity_id', '')
+Session.set('current_entity_name', '')
 
 
-var save_info_cache = {
+var save_entity_cache = {}
 
-	type: '',
-	name: '',
-	entities: [],
-	events: [],
-	desc: ''
-}
+var save_event_cache = {}
 
-var save_event_cache = {
+var remove_entity_cache = {}
 
-	name: '',
-	time: '',
-	entities: [],
-	desc: ''
-
-}
+var remove_event_cache = {}
 
 var new_events = []
 
@@ -62,6 +53,11 @@ var states_to_entity_components = {
 		type: 'characters',
 		relation: 'bigger',
 		tab_name: 'People who came from me'
+	},
+	{
+		type: 'factions',
+		relation: 'bigger',
+		tab_name: 'Races or Factions that came from me'
 	},
 	{
 		type: 'events',
@@ -179,9 +175,12 @@ Template.new_entity_name.onRendered(function(){
 })
 
 Template.new_description_form.onRendered(function(){
-	$("#entity_desc_field").val(save_info_cache.desc)
+	$("#entity_desc_field").val(save_entity_cache.desc)
 })
 
+//////////////////////////
+//	EVENTS
+//////////////////////////
 Template.sidebar.events({
 
 	'click #story_so_far'(event){
@@ -193,8 +192,8 @@ Template.sidebar.events({
 
 		Session.set('not_the_story_so_far', true)
 		Session.set('entity_or_misc', 'none')
-		Session.set('selected_tab', '')
-		Session.set('entity_selected', false)
+
+		HideCard()
 
 		SwitchStates(event.target.id)
 
@@ -205,17 +204,20 @@ Template.playground.events({
 
 	'click .playground_entity_prev'(event){
 
-		Session.set('entity_selected', true)
+		ShowCard()
 		Session.set('current_entity_id', event.target.id)
 
-		let entity = Entities.findOne({_id: event.target.id})
+		let entity = entity_manager.GetEntity(event.target.id)
 
 		if(entity)
+		{
+			Session.set('current_entity_name', entity.name)
 			SwitchStates(entity.type)
+		}
 		else
 		{
-			let eve = Events.findOne({_id: event.target.id})
-
+			let eve = entity_manager.GetEvent(event.target.id)
+			Session.set('current_entity_name', eve.name)
 			if(eve)
 				SwitchStates("events")
 		}
@@ -227,7 +229,7 @@ Template.new_description_form.events({
 	'change #entity_desc_field'(event){
 		let obj = event.target
 
-		save_info_cache.desc = $(obj).val()
+		save_entity_cache.desc = $(obj).val()
 	}
 })
 
@@ -250,72 +252,22 @@ Template.entity_components_nav.events({
 
 		let tab = DetermineTab()
 
-		console.log("Moving into " + tab.type)
-		if(tab.type != "desc")
+		if(Session.get("current_state") == "events")
 		{
-			if(tab.type == "event")
-			{
-				for(var e in save_info_cache.events)
-				{
-					let obj = $("#new-template").clone()
-					obj.text(save_info_cache.events[e].name)
-					$("#modal_entity_previewer").append(obj)
-					$(obj).show()
-				}
-			}
-			else
-			{
-				if(tab.relation == "smaller")
-				{
-					for(var e in save_info_cache.entities)
-					{
-						if(save_info_cache.entities[e].contained_by && save_info_cache.entities[e].type == tab.type)
-						{
-							let obj = $("#new-template").clone()
-							obj.text(save_info_cache.entities[e].name)
-							$("#modal_entity_previewer").append(obj)
-							$(obj).show()
-						}
-					}
-				}
-				else
-				{
-					for(var e in save_info_cache.entities)
-					{
-						if(!save_info_cache.entities[e].contained_by && save_info_cache.entities[e].type == tab.type)
-						{
-							let obj = $("#new-template").clone()
-							obj.text(save_info_cache.entities[e].name)
-							$("#modal_entity_previewer").append(obj)
-							$(obj).show()
-						}
-					}
-				}
-			}
+			PostItemsFromEventCacheToForm(tab.type)
 		}
- 	}
-})
-
-Template.edit_entity_modal.events({
-	'click #modal_save'(event){
-
-		HandleSave()
-
-		CloseModal()
-
-	},
-
-	'click #modal_close'(event){
-
-		CloseModal()
-
+		else
+		{
+			PostItemsFromEntityCacheToForm(tab.type)
+		}
 	}
 })
 
 Template.edit_story.events({
-	'click #add_entity_btn'(event){
+	'click #add_entity_btn'(event){		
+		ClearEntityCache()
+		ClearEventCache()
 		Session.set('create_or_edit', 'create')
-		ClearModal()
 	},
 
 })
@@ -323,7 +275,19 @@ Template.edit_story.events({
 Template.entity_card.events({
 	'click #edit_entity_btn'(event){
 		Session.set('create_or_edit', 'edit')
-		ClearModal()
+
+		ClearEntityCache()
+		ClearEventCache()
+
+		PrepareCacheForEdit()
+
+		console.log(save_entity_cache)
+	},
+	'click #delete_entity_btn'(event){
+		console.log("Deleting Entity")
+
+		HideCard()
+		HandleDelete()
 	}
 })
 
@@ -355,76 +319,47 @@ Template.new_entity_form.events({
 
 			if(Session.get("current_state") == "events")
 			{
-				let action = Session.get('create_or_edit')
-
-				if(action == 'create')
-					SavePreviewToEventsCache(true)
-				console.log('adding a new item to an existing event')
+				SaveItemToEventsCache(true, $("#new_other_name_field").val())
 			}
 			else
 			{
-				let action = Session.get('create_or_edit')
-
-				if(action == 'create')
-					SavePreviewToEntityCache(true)
-				console.log('adding a new item to an existing entity')
+				SaveItemToEntityCache(true, $("#new_other_name_field").val())
 			}
+
+			PostItemNameInForm(true, "new", $("#new_other_name_field").val())
+
+			$("#new_other_name_field").val("")
 		}
 	},
 	'click .existing_entity_dropdown_btn'(event){
 
 		if(Session.get("current_state") == "events")
 		{
-			let action = Session.get("create_or_edit")
-			if(action == 'create')
-				SavePreviewToEventsCache(false)
-			else
-				console.log('adding an existing item to an existing event')
+			SaveItemToEventsCache(false, event.target.id)
 		}
 		else
 		{
-			let action = Session.get("create_or_edit")
-			if(action == 'create')
-				SavePreviewToEntityCache(false)
-			console.log('adding an existing item to an existing entity')
+			SaveItemToEntityCache(false, event.target.id)
 		}
+
+		PostItemNameInForm(false, event.target.id, entity_manager.GetEntity(event.target.id).name)
 	},
 })
 
+/////////////////////////////
+//	HELPERS
+/////////////////////////////
 Template.playground.helpers({
 
 	entity(){
-		if(Session.get("current_state") == "events")
-		{
-			let story = Stories.findOne({_id: Session.get("story_id")})
+		let list_of_entities = entity_manager.GetAllEntitiesInStory(Session.get("story_id"), Session.get("current_state"))
 
-			let list_of_stuff = []
+		Session.set('amt_entities', list_of_entities.length)
 
-			for(var i in story.events)
-			{
-				list_of_stuff.push(Events.findOne({_id: story.events[i]}))
-			}
-
-			return list_of_stuff
-		}
-		else
-		{
-			let story = Stories.findOne({_id: Session.get("story_id")})
-
-			let list_of_stuff = []
-
-			for(var i in story.entities)
-			{
-				let entity = Entities.findOne({_id: story.entities[i]})
-				if(entity.type == Session.get("current_state"))
-					list_of_stuff.push(entity)
-			}
-
-			return list_of_stuff
-		}
+		return list_of_entities
 	},
-	entity_selected(){
-		return Session.get("entity_selected")
+	show_card(){
+		return Session.get("show_card")
 	},
 	is_event_state(){
 		return Session.get("current_state") == "events"
@@ -433,26 +368,7 @@ Template.playground.helpers({
 
 		if(Session.get("not_the_story_so_far"))
 		{
-			let story = Stories.findOne({_id: Session.get("story_id")})
-
-			let list_of_stuff = []
-
-			if(Session.get("current_state") == "events")
-			{
-				return story.events.length == 0
-			}
-			else
-			{
-				for(var e in story.entities)
-				{
-					if(Session.get("current_state") == Entities.findOne({_id: story.entities[e]}).type)
-						return false
-				}
-				return true
-			}
-
-
-			return list_of_stuff
+			return Session.get('amt_entities') == 0
 		}
 		else
 		{
@@ -465,14 +381,20 @@ Template.playground.helpers({
 
 Template.sidebar.helpers({
 	story_title(){
-		return Stories.findOne({_id: Session.get("story_id")}).name
+		return entity_manager.GetStory(Session.get('story_id')).name
 	}
 })
 
 Template.new_entity_form.helpers({
 	entity(){
 
-		return GetEntityListLoose()
+		//Get all the entities in the story of the type specified by the active tab
+
+		//Find the type of entities that we want that the active tab specifies
+		let tab = DetermineTab()
+
+		return entity_manager.GetAllEntitiesInStory(Session.get("story_id"), tab.type)
+		
 	}
 })
 
@@ -487,45 +409,34 @@ Template.entity_card.helpers({
 
 		if(Session.get('current_state') == "events")
 		{
-			return Events.findOne({_id: Session.get('current_entity_id')}).name
+			return entity_manager.GetEvent(Session.get('current_entity_id')).name
 		}
-		return Entities.findOne({_id: Session.get('current_entity_id')}).name
+		return entity_manager.GetEntity(Session.get('current_entity_id')).name
 	},
 	entity(){
 
-		return GetEntityListStrict()
+		//Pull all the entities contained by this entity, including any events
+		let context = DetermineTab()
+
+		if(context.type != "desc")
+		{
+			return entity_manager.GetAllEntitiesInEntity(Session.get('current_entity_id'), Session.get('current_state'), context.type, context.relation)
+		}
 	}
 })
 
 Template.description.helpers({
 	description(){
 
-		return Entities.findOne({_id: Session.get("current_entity_id")}).desc
-
-	}
-})
-
-Template.edit_entity_modal.helpers({
-	is_entity(){
-		return Session.get('entity_or_misc') != 'desc' && Session.get('entity_or_misc') != 'none'
-	},
-	is_misc(){
-		return Session.get('entity_or_misc') != 'none'
-	},
-	create_or_edit(){
-		let action = Session.get('create_or_edit')
-
-		if(action == 'create')
+		if(Session.get("current_state") == "events")
 		{
-			return "Create a new entity"
+			return entity_manager.GetEvent(Session.get('current_entity_id')).desc
 		}
-		else if(action == 'edit')
+		else
 		{
-			return 'Edit Entity Name'
+			return entity_manager.GetEntity(Session.get('current_entity_id')).desc
 		}
-	},
-	is_event_state(){
-		return Session.get('current_state') == 'events'
+
 	}
 })
 
@@ -545,26 +456,36 @@ Template.edit_story.helpers({
 	},
 })
 
-function CloseModal(){
 
-	$("#edit_modal").modal("hide")
+//////////////////////
+//	OTHER FUNCTIONS
+//////////////////////
+function ClearEntityCache()
+{
+	save_entity_cache = { type: '', name: '', entities: [], events: [], desc: ''}
+	remove_entity_cache = { entities: [], events: [] }
 }
 
-function ClearModal(){
+function ClearEventCache()
+{
+	save_event_cache = { name: '', time: '', entities: [], desc: ''}
+	remove_event_cache = { entities: [] }
+}
 
-	$("#entity_name").val("")
 
-	let save_new = $("#new-template").clone()
+function DetermineTab()
+{
+	let state = Session.get("current_state")
 
-	$("#modal_entity_previewer").empty()
+	let entity_comps = states_to_entity_components[state]
 
-	$("#modal_entity_previewer").append(save_new)
-
-	Session.set('entity_or_misc', 'none')
-	Session.set('selected_tab', '')
-	Session.set('entity_or_misc', 'none')
-	Session.set('selected_tab', '')
-
+	for(var e in entity_comps)
+	{
+		if(entity_comps[e].tab_name == Session.get("selected_tab"))
+		{
+			return entity_comps[e]
+		}
+	}
 }
 
 function ChangeHeaderText(header = "", subtitle = "", empty_warning = "")
@@ -590,387 +511,423 @@ function SwitchStates(state)
 	}
 }
 
-function HandleSave()
+function PutNameInCache(state)
 {
-	SaveCache()
-
-	if(!Validate())
-	{
-		console.log("Check input")
-		return
-	}
-
-	let action = Session.get('create_or_edit')
-
-	if(action == 'create')
-	{
-		CreateEntry()
-	}
-	else if(action == 'edit')
-	{
-		EditEntry()
-	}
-
-	CloseModal()
-}
-
-function Validate(){
-	if(Session.get('current_state') == 'events')
-	{
-		return save_event_cache.name != "" && save_event_cache.time != ""
-	}
-	else
-	{
-		return save_info_cache.name != ""
-	}
-}
-
-function SavePreviewToEventsCache(new_entry)
-{
-	let obj = $("#new-template").clone()
-
-	if(new_entry)
-	{
-		$(obj).text($("#new_other_name_field").val())
-	}
-	else
-	{
-		let entity = Entities.findOne({_id: event.target.id})
-
-		$(obj).text(entity.name)
-	}
-
-	let tab = DetermineTab()
-	if(new_entry)
-		save_event_cache.entities.push({new: new_entry, name: $(obj).text(), type: tab.type})
-	else
-		save_event_cache.entities.push({new: new_entry, name: $(obj).attr("id"), type: tab.type})
-
-	$("#modal_entity_previewer").append($(obj))
-	$(obj).show()
-}
-
-function SavePreviewToEntityCache(new_entry)
-{
-	let obj = $("#new-template").clone()
-
-	if(new_entry)
-	{
-		$(obj).text($("#new_other_name_field").val())
-		$(obj).attr("id", "new")
-	}
-	else
-	{
-		let entity = Entities.findOne({_id: event.target.id})
-
-		$(obj).text(entity.name)
-
-		$(obj).attr("id", event.target.id)
-	}
-
-	let tab = DetermineTab()
-
-	console.log(tab.type)
-	if(tab.type != "desc" && tab.type != "event")
-	{
-		if(tab.relation == "smaller")
-		{
-			if(new_entry)
-			{
-				save_info_cache.entities.push({new: new_entry, name: $(obj).text(), contained_by: true, type: tab.type})
-			}
-			else
-			{
-				save_info_cache.entities.push({new: new_entry, id: $(obj).attr("id"), contained_by: true, type: tab.type})
-			}
-
-		}
-		else
-		{
-			if(new_entry)
-			{
-				save_info_cache.entities.push({new: new_entry, contained_by: true, type: tab.type})
-			}
-			else
-			{
-				save_info_cache.entities.push({new: new_entry, id: $(obj).attr("id"), contained_by: true, type: tab.type})
-			}
-		}
-
-	}
-
-	$("#modal_entity_previewer").append($(obj))
-
-	$(obj).show()
-}
-
-function SaveCache()
-{
-	if(Session.get('current_state') == 'events')
+	if(state == 'events')
 	{
 		save_event_cache.name = $("#entity_name").val()
 		save_event_cache.time = $("#event_time").val()
 	}
 	else
 	{
-		save_info_cache.name = $("#entity_name").val()
-		save_info_cache.type = Session.get('current_state')	
+		save_entity_cache.name = $("#entity_name").val()
+		save_entity_cache.type = Session.get('current_state')	
 	}
 }
 
+function PrepareCacheForEdit(){
 
-//Make a new entry to the database
-function CreateEntry()
-{
-
-	if(Session.get('current_state') == 'events')
+	if(Session.get("current_state") == "events")
 	{
-		console.log("Saving from events cache")
-		console.log(save_event_cache)
+		let event_to_edit = entity_manager.GetEvent(Session.get("current_entity_id"))
 
+		let entities = event_to_edit.entities
 
-
-		//Go through all entities and create new ones that haven't been created already
-
-		var entity_id_list = []
-
-		for(var e in save_event_cache.entities)
+		for(var e in entities)
 		{
+			var entity = entity_manager.GetEntity(entities[e])
 
-			let entity = save_event_cache.entities[e]
-
-			let id = -1
-
-			if(entity.new)
-			{
-				id = Entities.insert({
-					type: entity.type,
-					name: entity.name,
-					contained_by: [],
-					contains: [],
-					events: [],
-					desc: ""
-				})
-
-				Stories.update({_id: Session.get("story_id")}, {$addToSet: {entities: id}})
-			}
-			else
-				id = entity.id
-
-			entity_id_list.push(id)
+			save_event_cache.entities.push({new: false, id: entity._id, type: entity.type})
 		}
 
-		let new_id = Events.insert({
-			name: save_event_cache.name,
-			time: save_event_cache.time,
-			entities: entity_id_list,
-			desc: save_event_cache.desc
-		})
-
-		Stories.update({_id: Session.get("story_id")}, {$addToSet: {events: new_id}})
-
-		for(var i in entity_id_list)
-		{
-			var id = entity_id_list[i]
-
-			Entities.update({_id: id}, {$addToSet: {events: new_id}})
-		}
+		save_event_cache.time = event_to_edit.time
+		save_event_cache.name = event_to_edit.name
+		save_event_cache.desc = event_to_edit.desc
 	}
 	else
 	{
-		console.log("Saving from entity cache")
-		console.log(save_info_cache)
+		let entity_to_edit = entity_manager.GetEntity(Session.get("current_entity_id"))
 
-		//Go through all entities and divide them by ones that this new object is smaller than
+		console.log("Copying data from ")
+		console.log(entity_to_edit)
 
-		var inside_array_collection = []
-		var contains_array_collection = []
-		var new_id = -1
+		let smaller_entities = entity_to_edit.contains
+		let larger_entities = entity_to_edit.contained_by
+		let events = entity_to_edit.events
 
-		for(var e in save_info_cache.entities)
+		for(var e in smaller_entities)
 		{
-			let entity = save_info_cache.entities[e]
-			let id = -1
+			var entity = entity_manager.GetEntity(smaller_entities[e])
 
-			//Check if this entity has not been created already
-			if(entity.new)
-			{
-				//Create a new entity with this name
-				id = Entities.insert({
-					type: entity.type,
-					name: entity.name,
-					contained_by: [],
-					contains: [],
-					events: [],
-					desc: ""
-				})
-
-				Stories.update({_id: Session.get("story_id")}, {$addToSet: {entities: id}})
-			}
-			else
-			{
-				id = entity.id
-			}
-			if(entity.contained_by)
-			{
-				inside_array_collection.push(id)
-			}
-			else
-			{
-				contains_array_collection.push(id)
-			}
+			save_entity_cache.entities.push({new: false, id: entity._id, contained_by: false, type: entity.type})
 		}
-	}
 
-	//Create a new entity for this new object
-	new_id = Entities.insert({
-		type: save_info_cache.type,
-		name: save_info_cache.name,
-		contained_by: inside_array_collection,
-		contains: contains_array_collection,
-		events: save_info_cache.events,
-		desc: save_info_cache.desc
-	})
-
-	Stories.update({_id: Session.get("story_id")}, {$addToSet: {entities: new_id}})
-
-	//Now, for all entities that contain this entity, add them to their contains array
-
-	for(var i in inside_array_collection)
-	{
-		var id = inside_array_collection[i]	
-
-		Entities.update({_id: id}, {$addToSet: {contains: new_id}})
-	}
-
-	//Now, for all entities that this entity contains, add them to their contained_by array
-	for(var i in contains_array_collection)
-	{
-		var id = contains_array_collection[i]	
-
-		Entities.update({_id: id}, {$addToSet: {contained_by: new_id}})
-	}
-}
-
-
-function EditEntry()
-{
-	console.log("Editing entity...")
-
-}
-
-
-function GetEntityListStrict(){
-		let current_entity = {}
-
-		if(Session.get('current_state') == 'events')
+		for(var e in larger_entities)
 		{
-			current_entity = Events.findOne({_id: Session.get('current_entity_id')})
+			var entity = entity_manager.GetEntity(larger_entities[e])
+
+			save_entity_cache.entities.push({new: false, id: entity._id, contained_by: true, type: entity.type})
+		}
+
+		for(var e in events)
+		{
+			var event = entity_manager.GetEvents(events[e])
+
+			save_entity_cache.events.push({new: false, id: event._id})
+		}
+
+		save_entity_cache.name = entity_to_edit.name
+		save_entity_cache.type = entity_to_edit.type
+		save_entity_cache.desc = entity_to_edit.desc
+	}
+
+	console.log(save_entity_cache)
+	console.log(save_event_cache)
+}
+
+function ShowCard()
+{
+	Session.set('show_card', true)
+}
+
+function HideCard()
+{
+	Session.set('selected_tab', '')
+	Session.set('show_card', false)
+}
+
+
+export function HandleSave()
+{
+	let state = Session.get('current_state')
+	let cache_to_save = null
+	let cache_to_delete = null
+
+	if(Session.get('create_or_edit') == "create")
+		PutNameInCache(state)
+
+	if(state != 'events')
+	{
+		state = 'entity'
+		cache_to_save = save_entity_cache
+		cache_to_delete = remove_entity_cache
+	}
+	else
+	{
+		state = "event"
+		cache_to_save = save_event_cache
+		cache_to_delete = remove_event_cache
+	}
+
+	if(!Validate(state))
+	{
+		console.log("Invalid input for creating a new entity")
+		console.log(cache_to_save)
+
+		return
+	}
+
+	console.log("Saving")
+	console.log(cache_to_save)
+
+	if(Session.get('create_or_edit') == 'create')
+	{
+		entity_manager.NewEntry(state, cache_to_save)
+	}
+	else
+	{
+		entity_manager.UpdateEntry(Session.get("current_entity_id"), state, cache_to_save, cache_to_delete)
+	}
+
+
+
+	function Validate(state){
+		if(state == 'event')
+		{
+			if(!/\S/.test(save_event_cache.name))
+			{
+				console.log("need a name")
+			}
+			else if(!/\S/.test(save_event_cache.time))
+			{
+				console.log("no time")
+			} 
+			else
+				return true
+
+			return false
 		}
 		else
 		{
-			current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
+			return /\S/.test(save_entity_cache.name)
 		}
-
-		console.log(current_entity)
-
-		var tab = DetermineTab()
-
-		if(tab.type != "desc")
-		{
-			if(tab.type == "events")
-			{
-				let id_list = current_entity.events
-				let list_of_stuff = []
-				for(var id in id_list)
-				{
-					let e = Events.findOne({_id: id_list[id]})
-					list_of_stuff.push(e)
-				}
-
-				console.log("Events: ")
-				console.log(current_entity.events)
-
-				console.log("List of stuff: ")
-				console.log(list_of_stuff)
-				return list_of_stuff
-			}
-			else
-			{
-				let list_of_stuff = []
-				let id_list = []
-				if(Session.get('current_state') == 'events')
-				{
-					id_list = current_entity.entities
-				}
-				else
-				{
-					if(tab.relation == "smaller")
-					{
-						id_list = current_entity.contained_by
-					}
-					else
-					{
-
-						id_list = current_entity.contains
-					}
-				}
-
-				for(var id in id_list)
-				{
-					let e = Entities.findOne({_id: id_list[id]})
-					if(e.type == tab.type)
-					{
-						list_of_stuff.push(e)
-					}
-				}
-
-				console.log("List of stuff: ")
-				console.log(list_of_stuff)
-				return list_of_stuff
-			}
-		}
+	}
 }
 
-function GetEntityListLoose(){
+function HandleDelete(){
 
-	let current_entity = null
+	let state = Session.get("current_state")
 
-	if(Session.get('current_state') == 'events')
+	if(state != "events")
 	{
-		current_entity = Events.findOne({_id: Session.get('current_entity_id')})
+		state = "entity"
+	}
+	else
+		state = "event"
+
+	entity_manager.DeleteEntry(Session.get("current_entity_id"), state)
+}
+
+
+function SaveItemToEventsCache(is_new_item, dom_id){
+
+	let context = DetermineTab()
+
+	if(is_new_item)
+	{
+		save_event_cache.entities.push({new: true, name: dom_id, type: context.type})
 	}
 	else
 	{
-		current_entity = Entities.findOne({_id: Session.get('current_entity_id')})
-	}
-
-	console.log(current_entity)
-
-	var tab = DetermineTab()
-
-	var id_list = []
-	if(tab.type == "event")
-	{
-		id_list = current_entity.events
-	}
-	else if(tab.type != "desc")
-	{
-		return Entities.find({type: tab.type}, {_id: 1, name: 1})
+		save_event_cache.entities.push({new: false, id: dom_id, type: context.type})
 	}
 }
 
-function DetermineTab()
+function SaveItemToEntityCache(is_new_item, dom_id)
 {
-	let state = Session.get("current_state")
+	let context = DetermineTab()
 
-	let entity_comps = states_to_entity_components[state]
-
-	for(var e in entity_comps)
+	if(is_new_item)
 	{
-		if(entity_comps[e].tab_name == Session.get("selected_tab"))
+		if(context.relation == "smaller")
 		{
-			return entity_comps[e]
+			save_entity_cache.entities.push({new: true, name: dom_id, contained_by: true, type: context.type})
+		}
+		else
+		{
+			save_entity_cache.entities.push({new: true, name: dom_id, contained_by: false, type: context.type})
+		}
+	}
+	else
+	{
+		if(context.relation == "smaller")
+		{
+			save_entity_cache.entities.push({new: false, id: dom_id, contained_by: true, type: context.type})
+		}
+		else
+		{
+			save_entity_cache.entities.push({new: false, id: dom_id, contained_by: false, type: context.type})
+		}
+
+	}
+}
+
+function RemoveItemFromEventCache(id)
+{
+	if(id == "new")
+	{
+		for(var e in save_event_cache.entities)
+		{
+			if(save_event_cache.entities[e].name == name)
+			{
+				save_event_cache.entities.splice(e, 1)
+			}
+		}
+	}
+	else
+	{
+		for(var e in save_event_cache.entities)
+		{
+			if(save_event_cache.entities[e].id == id)
+			{
+				save_event_cache.entities.splice(e, 1)
+				remove_event_cache.entities.push(save_event_cache.entities[e])
+			}
+		}
+	}
+
+	console.log("After deletion: ")
+	console.log(save_event_cache)
+	console.log(remove_event_cache)
+}
+
+function RemoveItemFromEntityCache(id, name)
+{
+	let context = DetermineTab()
+
+	if(context.type == "events")
+	{
+		if(id == "new")
+		{
+			for(var e in save_entity_cache.events)
+			{
+				if(save_entity_cache.events[e].name == name)
+				{
+					save_entity_cache.events.splice(e, 1)
+				}
+			}
+		}
+		else
+		{
+			for(var e in save_entity_cache.events)
+			{
+				if(save_entity_cache.events[e].id == id)
+				{
+					remove_entity_cache.events.push(save_event_cache.events[e])
+					save_entity_cache.events.splice(e, 1)
+				}
+			}
+		}
+	}
+	else
+	{
+		if(id == "new")
+		{
+			for(var e in save_entity_cache.entities)
+			{
+				if(save_entity_cache.entities[e].name == name)
+				{
+					save_entity_cache.entities.splice(e, 1)
+				}
+			}
+		}
+		else
+		{
+			for(var e in save_entity_cache.entities)
+			{
+				if(save_entity_cache.entities[e].id == id)
+				{
+					remove_entity_cache.entities.push({id: save_entity_cache.entities[e].id, 
+						contained_by: save_entity_cache.entities[e].contained_by})
+
+					save_entity_cache.entities.splice(e, 1)
+				}
+			}
+		}
+	}
+
+	console.log("After deletion")
+	console.log(save_entity_cache)
+	console.log(remove_entity_cache)
+}
+
+function PostItemNameInForm(is_new_item, dom_id, name){
+
+	let obj = $("#new-template").clone()
+
+	$(obj).text(name + $(obj).text())
+
+	$(obj).attr("id", dom_id)
+
+	if(!is_new_item)
+	{
+		$(obj).attr("class", $(obj).attr("class") + " list-group-item-primary")
+	}
+	else
+	{
+		$(obj).attr("class", $(obj).attr("class") + " list-group-item-secondary")
+
+	}
+
+	$(obj).on("click", function(){
+
+			console.log("Setting up for removing " + $(this).attr("id") + " " + $(this).text())
+
+			if(Session.get("current_state") == "events")
+			{
+
+				RemoveItemFromEventCache($(this).attr("id"), $(this).text())
+			}
+			else
+			{
+				RemoveItemFromEntityCache($(this).attr("id"), $(this).text())
+			}
+
+
+		$(this).remove()
+	})
+
+	$("#modal_entity_previewer").append($(obj))
+
+	$(obj).show()
+}
+
+function PostItemsFromEventCacheToForm(context)
+{
+	if(context.type != "desc")
+	{
+		for(var e in save_event_cache.entities)
+		{
+			if(save_event_cache.entities[e].type == context.type)
+			{
+				if(save_event_cache.entities[e].new)
+				{
+					PostItemNameInForm(true, "new", save_event_cache.entities[e].name)
+				}
+				else
+				{
+					PostItemNameInForm(false, save_event_cache.entities[e].id, entity_manager.GetEntity(save_event_cache.entities[e].id).name)
+				}
+
+			}
+		}
+	}
+}
+
+function PostItemsFromEntityCacheToForm(context)
+{
+	if(context.type != "desc")
+	{
+		if(context.type == "event")
+		{
+			for(var e in save_entity_cache.events)
+			{
+				if(save_entity_cache.events[e].new)
+				{
+					PostItemNameInForm(true, "new", save_entity_cache.events[e].name)
+				}
+				else
+				{
+					PostItemNameInForm(false, save_entity_cache.events[e].id, entity_manager.GetEvent(save_entity_cache.events[e].id).name)
+				}
+			}
+		}
+		else
+		{
+			if(context.relation == "smaller")
+			{
+				for(var e in save_entity_cache.entities)
+				{
+					if(save_entity_cache.entities[e].contained_by && save_entity_cache.entities[e].type == context.type)
+					{
+						if(save_entity_cache.entities[e].new)
+						{
+							PostItemNameInForm(true, "new", save_entity_cache.entities[e].name)
+						}
+						else
+						{
+							PostItemNameInForm(false, save_entity_cache.entities[e].id, entity_manager.GetEntity(save_entity_cache.entities[e].id).name)
+						}
+					}
+				}
+			}
+			else
+			{
+				for(var e in save_entity_cache.entities)
+				{
+					if(!save_entity_cache.entities[e].contained_by && save_entity_cache.entities[e].type == context.type)
+					{
+						if(save_entity_cache.entities[e].new)
+						{
+							PostItemNameInForm(true, "new", save_entity_cache.entities[e].name)
+						}
+						else
+						{
+							PostItemNameInForm(false, save_entity_cache.entities[e].id, entity_manager.GetEntity(save_entity_cache.entities[e].id).name)
+						}
+					}
+				}
+			}
 		}
 	}
 }

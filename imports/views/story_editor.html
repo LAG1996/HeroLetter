@@ -26,7 +26,7 @@
 				{{> empty_warning}}
 			{{/if}}
 
-			<div id = "create_btn"><button class = "btn btn-default open-modal-btn" id = "add_entity_btn" data-toggle="modal" data-target="#edit_modal">Add</button></div>
+			<div id = "create_btn"><button class = "btn btn-outline-primary open-modal-btn" id = "add_entity_btn" data-toggle="modal" data-target="#edit_modal">Add</button></div>
 
 	     	<div class = "list-group" id = "entity_list">
 
@@ -42,11 +42,10 @@
 	     </div>
 
 	     <div class = "col-8" id = "entity_card">
-	     	{{#if entity_selected}}
+	     	{{#if show_card}}
 	     		{{> entity_card}}
 	     	{{/if}}
 	     </div>
-
 	</div>
 
 	{{> edit_entity_modal}}
@@ -67,7 +66,15 @@
 
 
 	<h1 class = "text-center">{{name}}</h1>
-	<!--<button class = "btn btn-default open-modal-btn" data-toggle="modal" data-target="#edit_modal" id = "edit_entity_btn">Edit</button>-->
+	<div class = "row">
+		<div class = "col">
+			<button class = "btn btn-outline-success open-modal-btn float-right" data-toggle="modal" data-target="#edit_modal" id = "edit_entity_btn">Edit</button>
+		</div>
+		<div class = "col">
+			<button class = "btn btn-outline-danger" id = "delete_entity_btn">Delete</button>
+		</div>
+	</div>
+
 
 	{{> entity_components_nav}}
 

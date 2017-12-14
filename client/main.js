@@ -5,6 +5,8 @@ import { Mongo } from 'meteor/mongo'
 
 import '../imports/startup/accounts-config.js'
 
+import '../imports/api/database_interact.js'
+
 import '../imports/templates/navbar.js'
 import '../imports/templates/sidebar.js'
 
